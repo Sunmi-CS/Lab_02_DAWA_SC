@@ -3,14 +3,33 @@ const repo = require("./repository/studentsRepository");
 
 const PORT = 4000;
 
-// ✅ Validación
+// ✅ Validación mejorada
 function validateStudent(data) {
   const { name, email, course, phone } = data;
 
-  if (!name || !email || !course || !phone) {
-    return "Faltan campos obligatorios: name, email, course, phone";
-  }
+  if (!name || name.trim() === "") return "El nombre es obligatorio";
+  if (!email || email.trim() === "") return "El email es obligatorio";
+  if (!course || course.trim() === "") return "El curso es obligatorio";
+  if (!phone || phone.trim() === "") return "El teléfono es obligatorio";
+
   return null;
+}
+
+// ✅ Helper para leer JSON seguro
+function parseBody(req, callback, res) {
+  let body = "";
+
+  req.on("data", chunk => (body += chunk));
+
+  req.on("end", () => {
+    try {
+      const data = JSON.parse(body || "{}");
+      callback(data);
+    } catch (error) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: "JSON inválido" }));
+    }
+  });
 }
 
 const server = http.createServer((req, res) => {
@@ -19,32 +38,23 @@ const server = http.createServer((req, res) => {
 
   // GET /students
   if (url === "/students" && method === "GET") {
-    res.statusCode = 200;
-    res.end(JSON.stringify(repo.getAll()));
+    return res.end(JSON.stringify(repo.getAll()));
   }
 
   // GET /students/:id
-  else if (url.startsWith("/students/") && method === "GET") {
+  if (url.startsWith("/students/") && method === "GET") {
     const id = parseInt(url.split("/")[2]);
     const student = repo.getById(id);
 
-    if (student) {
-      res.statusCode = 200;
-      res.end(JSON.stringify(student));
-    } else {
-      res.statusCode = 404;
-      res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
-    }
+    if (student) return res.end(JSON.stringify(student));
+
+    res.statusCode = 404;
+    return res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
   }
 
   // POST /students
-  else if (url === "/students" && method === "POST") {
-    let body = "";
-    req.on("data", chunk => (body += chunk));
-
-    req.on("end", () => {
-      const data = JSON.parse(body);
-
+  if (url === "/students" && method === "POST") {
+    return parseBody(req, (data) => {
       const error = validateStudent(data);
       if (error) {
         res.statusCode = 400;
@@ -54,77 +64,63 @@ const server = http.createServer((req, res) => {
       const newStudent = repo.create(data);
       res.statusCode = 201;
       res.end(JSON.stringify(newStudent));
-    });
+    }, res);
   }
 
   // PUT /students/:id
-  else if (url.startsWith("/students/") && method === "PUT") {
+  if (url.startsWith("/students/") && method === "PUT") {
     const id = parseInt(url.split("/")[2]);
 
-    let body = "";
-    req.on("data", chunk => (body += chunk));
-
-    req.on("end", () => {
-      const data = JSON.parse(body);
-
+    return parseBody(req, (data) => {
       const updated = repo.update(id, data);
 
-      if (updated) {
-        res.statusCode = 200;
-        res.end(JSON.stringify(updated));
-      } else {
-        res.statusCode = 404;
-        res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
-      }
-    });
+      if (updated) return res.end(JSON.stringify(updated));
+
+      res.statusCode = 404;
+      res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
+    }, res);
   }
 
   // DELETE /students/:id
-  else if (url.startsWith("/students/") && method === "DELETE") {
+  if (url.startsWith("/students/") && method === "DELETE") {
     const id = parseInt(url.split("/")[2]);
     const deleted = repo.remove(id);
 
-    if (deleted) {
-      res.statusCode = 200;
-      res.end(JSON.stringify(deleted));
-    } else {
-      res.statusCode = 404;
-      res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
-    }
-  }
+    if (deleted) return res.end(JSON.stringify(deleted));
 
-  // POST /ListByStatus
-  else if (url === "/ListByStatus" && method === "POST") {
-    let body = "";
-    req.on("data", chunk => (body += chunk));
-
-    req.on("end", () => {
-      const { status } = JSON.parse(body);
-      const result = repo.getByStatus(status);
-
-      res.statusCode = 200;
-      res.end(JSON.stringify(result));
-    });
-  }
-
-  // POST /ListByGrade
-  else if (url === "/ListByGrade" && method === "POST") {
-    let body = "";
-    req.on("data", chunk => (body += chunk));
-
-    req.on("end", () => {
-      const { gpa } = JSON.parse(body);
-      const result = repo.getByGrade(gpa);
-
-      res.statusCode = 200;
-      res.end(JSON.stringify(result));
-    });
-  }
-
-  else {
     res.statusCode = 404;
-    res.end(JSON.stringify({ error: "Ruta no encontrada" }));
+    return res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
   }
+
+  // 🔥 POST /ListByStatus (CORREGIDO)
+  if (url === "/ListByStatus" && method === "POST") {
+    return parseBody(req, (data) => {
+      if (!data.status) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: "Debe enviar status" }));
+      }
+
+      const result = repo.getByStatus(data.status);
+      res.end(JSON.stringify(result));
+    }, res);
+  }
+
+  // 🔥 POST /ListByGrade (CORREGIDO)
+  if (url === "/ListByGrade" && method === "POST") {
+    return parseBody(req, (data) => {
+      if (data.gpa === undefined) {
+        res.statusCode = 400;
+        return res.end(JSON.stringify({ error: "Debe enviar gpa" }));
+      }
+
+      const result = repo.getByGrade(Number(data.gpa));
+      res.end(JSON.stringify(result));
+    }, res);
+  }
+
+  // 404
+  res.statusCode = 404;
+  res.end(JSON.stringify({ error: "Ruta no encontrada" }));
 });
 
 server.listen(PORT, () => {
