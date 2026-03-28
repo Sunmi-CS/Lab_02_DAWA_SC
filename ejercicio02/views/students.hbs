@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>{{titulo}}</title>
+    <title>{{title}}</title>
 </head>
 <body>
     <h1>Lista de estudiantes</h1>
@@ -13,14 +13,14 @@
             <th>Nota</th>
         </tr>
 
-        {{#each estudiantes}}
+        {{#each students}}
         <tr>
-            <td>{{nombre}}</td>
+            <td>{{name}}</td>
             
-            {{#if (grado 15)}}
-                <td style="color: green;"><strong>{{grado}}</strong></td>
+            {{#if (gt grade 15)}}
+                <td style="color: green;"><strong>{{grade}}</strong></td>
             {{else}}
-                <td>{{grado}}</td>
+                <td>{{grade}}</td>
             {{/if}}
 
         </tr>
