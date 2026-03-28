@@ -50,9 +50,10 @@ function remove(id) {
 
 // 🔍 Nuevos filtros
 function getByStatus(status) {
-  return students.filter(s => s.status === status);
+  return students.filter(
+    s => s.status.toLowerCase().trim() === status.toLowerCase().trim()
+  );
 }
-
 function getByGrade(minGpa) {
   return students.filter(s => s.gpa >= minGpa);
 }
