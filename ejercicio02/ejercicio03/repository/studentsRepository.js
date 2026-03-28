@@ -55,7 +55,9 @@ function getByStatus(status) {
   );
 }
 function getByGrade(minGpa) {
-  return students.filter(s => s.gpa >= minGpa);
+  return students.filter(
+    s => Number(s.gpa) >= Number(minGpa)
+  );
 }
 
 module.exports = {
