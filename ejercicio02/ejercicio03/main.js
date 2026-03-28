@@ -3,7 +3,6 @@ const repo = require("./repository/studentsRepository");
 
 const PORT = 4000;
 
-// ✅ Validación mejorada
 function validateStudent(data) {
   const { name, email, course, phone } = data;
 
@@ -15,7 +14,6 @@ function validateStudent(data) {
   return null;
 }
 
-// ✅ Helper para leer JSON seguro
 function parseBody(req, callback, res) {
   let body = "";
 
@@ -92,7 +90,6 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ error: "Estudiante no encontrado" }));
   }
 
-  // 🔥 POST /ListByStatus (CORREGIDO)
   if (url === "/ListByStatus" && method === "POST") {
     return parseBody(req, (data) => {
       if (!data.status) {
@@ -105,7 +102,6 @@ const server = http.createServer((req, res) => {
     }, res);
   }
 
-  // 🔥 POST /ListByGrade (CORREGIDO)
   if (url === "/ListByGrade" && method === "POST") {
     return parseBody(req, (data) => {
       if (data.gpa === undefined) {
