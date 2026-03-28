@@ -1,9 +1,22 @@
 let students = [
-  { id: 1, name: "Ana", grade: 18 },
-  { id: 2, name: "Luis", grade: 14 },
-  { id: 3, name: "Pedro", grade: 16 }
+  {
+    id: 1,
+    name: "Ana",
+    grade: 18,
+    age: 20,
+    email: "ana@email.com",
+    phone: "999111222",
+    enrollmentNumber: "2023001",
+    course: "Ingeniería",
+    year: 3,
+    subjects: ["Matemática", "Programación"],
+    gpa: 17,
+    status: "activo",
+    admissionDate: "2023-03-01"
+  }
 ];
 
+// CRUD
 function getAll() {
   return students;
 }
@@ -35,4 +48,21 @@ function remove(id) {
   return null;
 }
 
-module.exports = { getAll, getById, create, update, remove };
+// 🔍 Nuevos filtros
+function getByStatus(status) {
+  return students.filter(s => s.status === status);
+}
+
+function getByGrade(minGpa) {
+  return students.filter(s => s.gpa >= minGpa);
+}
+
+module.exports = {
+  getAll,
+  getById,
+  create,
+  update,
+  remove,
+  getByStatus,
+  getByGrade
+};
