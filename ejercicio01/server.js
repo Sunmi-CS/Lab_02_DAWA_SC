@@ -19,6 +19,22 @@ const server = http.createServer((req, res) => {
   } else if (req.url === "/contact") {
     res.statusCode = 200;
     res.end("<h1>Contacto</h1><p>Escríbenos a contacto@ejemplo.com</p>");
+    
+  } else if (req.url === "/services") {
+    res.statusCode = 200;
+    res.end(`
+      <h1>Servicios</h1>
+      <ul>
+        <li>Desarrollo web</li>
+        <li>Diseño de aplicaciones</li>
+        <li>Consultoría tecnológica</li>
+      </ul>
+    `);
+    
+  } else if (req.url === "/error") {
+    res.statusCode = 500;
+    res.end("<h1>500 - Error interno del servidor</h1>");
+    
   } else {
     res.statusCode = 404;
     res.end("<h1>404 - Página no encontrada</h1>");
